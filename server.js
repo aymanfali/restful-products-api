@@ -1,33 +1,33 @@
-const express = require("express");
-const app = express();
-const productsRoutes = require("./routes/productsRoutes");
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const morgan = require("morgan");
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import morgan from "morgan";
+import productsRoutes from "./routes/productsRoutes.js";
 
-const PORT = 3000;
 dotenv.config();
 
+const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(express.json());
-
-app.use("/api", productsRoutes);
-
-mongoose
-  .connect(process.env.DB_URI)
-  .then(() => console.log("MongoDB connected successfully"))
-  .catch((error) => {
-    console.error("MongoDB connection error:", error);
-    process.exit(1);
-  });
-
-app.use(morgan("dev"));
+app.use(morgan("dev")); // request logging
 
 app.use((req, res, next) => {
-  const now = new Date().toString();
+  const now = new Date().toISOString();
   console.log(`[${now}] ${req.method} ${req.url}`);
   next();
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+app.use("/api", productsRoutes);
+
+try {
+  await mongoose.connect(process.env.DB_URI);
+  console.log("MongoDB connected successfully");
+
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+} catch (error) {
+  console.error("MongoDB connection error:", error);
+  process.exit(1);
+}
