@@ -1,0 +1,30 @@
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
+
+const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
+
+// Fail fast if secrets are missing
+if (!ACCESS_SECRET || !REFRESH_SECRET) {
+  throw new Error("JWT secrets are not defined in environment variables");
+}
+
+export const generateAccessToken = (user) => {
+  return jwt.sign(
+    { id: user._id, email: user.email, name: user.name, role: user.role },
+    ACCESS_SECRET,
+    {
+      expiresIn: "60m",
+    }
+  );
+};
+
+export const generateRefreshToken = (user) => {
+  return jwt.sign({ id: user._id, email: user.email }, REFRESH_SECRET, {
+    expiresIn: "7d",
+  });
+};
+
+export const verifyAccessToken = (token) => jwt.verify(token, ACCESS_SECRET);
+export const verifyRefreshToken = (token) => jwt.verify(token, REFRESH_SECRET);

@@ -1,7 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import morgan from "morgan";
 import productsRoutes from "./routes/productsRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
@@ -11,7 +10,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(morgan("dev")); // request logging
 
 app.use((req, res, next) => {
   const now = new Date().toISOString();
@@ -20,7 +18,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/api", productsRoutes);
-app.use("/api", userRoutes);
+app.use("/api/auth", userRoutes);
 
 try {
   await mongoose.connect(process.env.DB_URI);
