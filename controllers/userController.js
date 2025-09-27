@@ -1,25 +1,101 @@
-import { User } from "../models/userModel.js";
+import * as authService from "../services/auth.service.js";
+import { validationResult } from "express-validator";
+import ApiError from "../utils/ApiError.js";
 
-export const registerUser = async (req, res) => {
+/* Validation handler */
+const handleValidation = (req) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    throw new ApiError(
+      "Validation failed",
+      400,
+      errors.array().map((err) => ({ field: err.path, message: err.msg }))
+    );
+  }
+};
+
+export const getProfile = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const user = req.user;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "Email already in use" });
-    }
-
-    const user = await User.create({ name, email, password, role });
-    res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        id: user._id,
+    res.json({
+      success: true,
+      data: {
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
       },
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch profile",
+      errors: [],
+    });
+  }
+};
+
+/* REGISTER */
+export const register = async (req, res) => {
+  try {
+    handleValidation(req);
+    const { name, email, password } = req.body;
+    const tokens = await authService.register(name, email, password);
+    res.status(201).json({ success: true, data: tokens });
+  } catch (err) {
+    res.status(err.status || 500).json({
+      success: false,
+      message: err.message,
+      errors: err.details || [],
+    });
+  }
+};
+
+/* LOGIN */
+export const login = async (req, res) => {
+  try {
+    handleValidation(req);
+    const { email, password } = req.body;
+    const tokens = await authService.login(email, password);
+    res.json({ success: true, data: tokens });
+  } catch (err) {
+    res.status(err.status || 500).json({
+      success: false,
+      message: err.message,
+      errors: err.details || [],
+    });
+  }
+};
+
+/* REFRESH */
+export const refresh = async (req, res) => {
+  try {
+    handleValidation(req);
+    const { refreshToken } = req.body;
+    const tokens = await authService.refreshToken(refreshToken);
+    res.json({ success: true, data: tokens });
+  } catch (err) {
+    res.status(err.status || 500).json({
+      success: false,
+      message: err.message,
+      errors: err.details || [],
+    });
+  }
+};
+
+/* LOGOUT */
+export const logout = async (req, res) => {
+  try {
+    handleValidation(req);
+    const { refreshToken } = req.body;
+    const result = await authService.logout(refreshToken);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(err.status || 500).json({
+      success: false,
+      message: err.message,
+      errors: err.details || [],
+    });
   }
 };
