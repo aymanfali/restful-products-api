@@ -6,13 +6,19 @@ import {
   updateProduct,
   deleteProduct,
 } from "../controllers/productsController.js";
+import {
+  createProductValidator,
+  updateProductValidator,
+  productIdValidator,
+} from "../validators/productValidator.js";
+import { validate } from "../middlewares/validator.middleware.js";
 
 const router = express.Router();
 
 router.get("/products", getAllProducts);
-router.get("/products/:id", getSingleProduct);
-router.post("/products", createProduct);
-router.put("/products/:id", updateProduct);
-router.delete("/products/:id", deleteProduct);
+router.get("/products/:id", productIdValidator, validate, getSingleProduct);
+router.post("/products", createProductValidator, validate, createProduct);
+router.put("/products/:id", updateProductValidator, validate, updateProduct);
+router.delete("/products/:id", productIdValidator, validate, deleteProduct);
 
 export default router;

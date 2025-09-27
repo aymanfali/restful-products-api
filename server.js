@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import productsRoutes from "./routes/productsRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/api", productsRoutes);
+app.use("/api", userRoutes);
 
 try {
   await mongoose.connect(process.env.DB_URI);
